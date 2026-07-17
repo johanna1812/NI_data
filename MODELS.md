@@ -79,11 +79,32 @@ the earlier single-mode marginal model of `ni_analysis.py` is the effective desc
 * `ni_twomode.fit_twomode(pooled_ns, N1, sq, theta_bs, D)` — fit one condition's binned,
   drift-compensated joint matrices (use `ni_joint.pool_joint` to build `pooled_ns`).
 
+## Grid results (`analysis_twomode_grid.py`, PBS/UP)
+
+* **N₁=0 (no subtraction):** the general two-mode model fits excellently — χ²ᵥ≈22,
+  η₃=0.47, η₄=0.54 (≈ reference TES), rt≈0.13, rs≈0.04. The data/model joint heatmaps
+  agree (`fig10`).
+* **CFI from the TRUE two-mode joint** (N₁=0): F_joint=5.1×10⁻³ **> F_total=4.8×10⁻³
+  (+5%) > F_1det=2.7×10⁻³ (×2)**. So the pair correlations *do* add phase information
+  over the total photon number — exactly the effect a passive split cannot give
+  (there F_joint=F_total to the digit). This is the metrological payoff of the two-mode
+  read-out.
+* **N₁=1,2 (subtracted):** fixing the shared detectors + source and applying `a^{N1}`
+  to one output mode **fails** (χ²~10⁴). Diagnosis: in this setup the **herald (Det 1) is
+  a separate mode**, so heralding on N₁ is a *projective conditioning of a 3-mode state*
+  (herald ⊗ signal ⊗ idler), not `a^{N1}` on an output mode. The subtracted-state model
+  therefore needs the herald mode added explicitly — this is the next modelling step
+  (see below). The single-mode marginal analysis of the subtracted data (figs 1–8)
+  remains valid as a *marginal* description.
+
 ## Recommended next step
 
-Fit the **PBS and 50:50 data sets jointly**, sharing `(rt, rs, r2, phase)` and using
-separate `(eta3, eta4)` per set, with `theta_bs` fixed to 0 and pi/4 respectively. That
-over-determines the two-mode state and cleanly separates the two-mode gain (from the PBS
-correlations) from the single-mode gain (from the 50:50 marginals) — and then the CFI can
-be evaluated from the true joint statistics, where the correlations do add phase
-information over the total (unlike the passive-split case).
+1. **Add the herald mode** (3-mode: herald ⊗ a ⊗ b) so the subtracted conditions
+   (N₁≥1) are modelled by projecting on the herald photon number, not by `a^{N1}`. This
+   is what makes the N₁=1,2 two-mode fits work.
+2. Fit the **PBS and 50:50 data sets jointly**, sharing `(rt, rs, r2, phase)` and using
+   separate `(eta3, eta4)` per set, with `theta_bs` fixed to 0 and pi/4 respectively. That
+   over-determines the two-mode state and cleanly separates the two-mode gain (from the PBS
+   correlations) from the single-mode gain (from the 50:50 marginals) — and then the CFI
+   is evaluated from the true joint statistics, where the correlations add phase
+   information over the total (already shown for N₁=0: +5%).

@@ -223,3 +223,27 @@ def fit_general(pooled_ns, N1, theta_bs=0.0, D=8, sysfloor=0.02, seeds=None):
     return dict(r1=x[0], rs1=x[1], r2=x[2], rs2=0.0, eta3=x[3], eta4=x[4],
                nbg3=x[5], nbg4=x[5], phi0=x[6], sq="general", theta_bs=theta_bs,
                chi2=2 * best.cost / max(Mobs.size - len(x), 1))
+
+
+def cfi_joint(params, N1=0, D=9, ngrid=200):
+    """Peak classical Fisher info per shot from the TRUE two-mode joint P(n3,n4),
+    vs the total n3+n4, vs one detector marginal. For a correlated two-mode state
+    F_joint > F_total (correlations carry phase info); for a passive split they are equal."""
+    phi = np.linspace(0, np.pi, ngrid); dphi = 1e-4
+    J0 = two_mode_pn(phi, params, N1=N1, nmax=6, D=D)
+    J1 = two_mode_pn(phi + dphi, params, N1=N1, nmax=6, D=D)
+    dJ = (J1 - J0) / dphi
+    F_joint = np.nansum(dJ ** 2 / (J0 + 1e-15), axis=(1, 2))
+    K = J0.shape[1]
+    def tot(x):
+        T = np.zeros((x.shape[0], 2 * K - 1))
+        for a in range(K):
+            for b in range(K):
+                T[:, a + b] += x[:, a, b]
+        return T
+    T0, T1 = tot(J0), tot(J1); dT = (T1 - T0) / dphi
+    F_tot = np.nansum(dT ** 2 / (T0 + 1e-15), axis=1)
+    m0, m1 = J0.sum(2), J1.sum(2); dm = (m1 - m0) / dphi          # Det3 marginal
+    F_m = np.nansum(dm ** 2 / (m0 + 1e-15), axis=1)
+    return dict(F_joint=F_joint.max(), F_total=F_tot.max(), F_marg=F_m.max(),
+                gain_joint_over_total=F_joint.max() / F_tot.max())
