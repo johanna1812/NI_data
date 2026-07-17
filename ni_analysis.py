@@ -277,6 +277,161 @@ def fit_round(entry, nsubs, r1_fixed, seed=None, D=14, sysfloor=0.02):
 # ======================================================================
 # 5.  CLASSICAL FISHER INFORMATION FROM DATA
 # ======================================================================
+# ======================================================================
+#  GENERAL LOSS MODEL: internal loss (after S1) + separate detector losses
+#  Needs full density-matrix propagation because loss BEFORE the second
+#  squeezer is re-amplified by it (not a simple binomial loss at the end).
+# ======================================================================
+def loss_channel(rho, eta, D):
+    """Amplitude-damping (loss) channel of transmission eta on a real density matrix."""
+    if eta >= 0.999999:
+        return rho
+    # B[j,l] = sqrt(C(j+l,l)) * eta^(j/2) * (1-eta)^(l/2)
+    j = np.arange(D)
+    B = np.zeros((D, D))
+    for l in range(D):
+        jj = np.arange(D - l)
+        B[jj, l] = np.sqrt(comb(jj + l, l)) * eta ** (jj / 2.0) * (1 - eta) ** (l / 2.0)
+    out = np.zeros_like(rho)
+    for l in range(D):
+        w = B[:D - l, l]
+        out[:D - l, :D - l] += np.outer(w, w) * rho[l:, l:]
+    return out
+
+
+def output_diag(phi_arr, r1, r2, eta_int, N1, D=16):
+    """Photon-number distribution of the interferometer OUTPUT mode (before detector loss),
+    including internal loss eta_int applied AFTER the first squeezer / at the herald tap."""
+    S1, a = _squeeze(r1, D)
+    S2, _ = _squeeze(r2, D)
+    rho = np.zeros((D, D))
+    rho[0, 0] = 1.0
+    rho = S1 @ rho @ S1.T
+    rho = loss_channel(rho, eta_int, D)
+    if N1 > 0:
+        aN = np.linalg.matrix_power(a, N1)
+        rho = aN @ rho @ aN.T
+        tr = np.trace(rho)
+        if tr <= 0:
+            return np.zeros((len(phi_arr), D))
+        rho = rho / tr
+    n = np.arange(D)
+    out = np.empty((len(phi_arr), D))
+    for i, phi in enumerate(phi_arr):
+        ph = np.exp(-1j * phi * n)
+        r = (ph[:, None] * rho) * np.conj(ph)[None, :]
+        r = S2 @ r @ S2.T
+        out[i] = np.real(np.diag(r))
+    return out
+
+
+def apply_detection(diag, eta_det, nbg, nmax, D):
+    """Binomial detection loss eta_det + Poisson background on an output diagonal [nV, D]."""
+    L = _loss_matrix(eta_det, D)              # L[n,m]=C(m,n)eta^n(1-eta)^(m-n)
+    P = diag @ L.T
+    if nbg > 1e-9:
+        k = np.arange(D)
+        pois = np.exp(-nbg) * nbg ** k / np.array([math.factorial(i) for i in k])
+        P = np.array([np.convolve(P[i], pois)[:D] for i in range(P.shape[0])])
+    return P[:, :nmax + 1]
+
+
+def load_both(direction, nsubs):
+    """Per round/condition: V, C3 (Det3 counts), C4 (Det4 counts), N (totals). One pass."""
+    vfolders = voltage_folders(direction)
+    rounds = {}
+    for v, fp in vfolders:
+        for rp in glob.glob(os.path.join(fp, "*_heralded_3way.txt")):
+            k = int(re.search(r"round_(\d+)_", os.path.basename(rp)).group(1))
+            rounds.setdefault(k, {})
+    data = {k: {ns: {"V": [], "d3": [], "d4": []} for ns in nsubs} for k in rounds}
+    for v, fp in vfolders:
+        for rp in glob.glob(os.path.join(fp, "*_heralded_3way.txt")):
+            k = int(re.search(r"round_(\d+)_", os.path.basename(rp)).group(1))
+            mats, _ = parse_heralded_file(rp)
+            for ns in nsubs:
+                if ns in mats:
+                    data[k][ns]["V"].append(v)
+                    data[k][ns]["d3"].append(marginal(mats[ns], "D3"))
+                    data[k][ns]["d4"].append(marginal(mats[ns], "D4"))
+    out = {}
+    nmax = 4
+    for k in sorted(rounds):
+        entry = {}
+        ok = True
+        for ns in nsubs:
+            V = np.array(data[k][ns]["V"])
+            if len(V) < 6:
+                ok = False
+                break
+            idx = np.argsort(V)
+            V = V[idx]
+            D = max(max(len(d) for d in data[k][ns]["d3"]),
+                    max(len(d) for d in data[k][ns]["d4"]))
+            C3 = np.zeros((len(V), D)); C4 = np.zeros((len(V), D))
+            for j, jj in enumerate(idx):
+                d3 = data[k][ns]["d3"][jj]; d4 = data[k][ns]["d4"][jj]
+                C3[j, :len(d3)] = d3; C4[j, :len(d4)] = d4
+            N = C3.sum(axis=1)
+            entry[ns] = {"V": V, "C3": C3[:, :nmax + 1], "C4": C4[:, :nmax + 1], "N": N}
+        if ok:
+            out[k] = entry
+    return out, sorted(out)
+
+
+def fit_round_general(entry, nsubs, r1, seed=None, D=16, sysfloor=0.02):
+    """
+    Joint fit of Det3 AND Det4 marginals across all herald conditions.
+    Shared: r2, eta_int (internal loss), omega, phi0.  Separate: eta3, eta4.
+    Per-condition Poisson background (shared between detectors).  r1 fixed.
+    """
+    nmax = entry[nsubs[0]]["C4"].shape[1] - 1
+    obs, sig, Vs = {}, {}, {}
+    for ns in nsubs:
+        V, N = entry[ns]["V"], entry[ns]["N"]
+        Vs[ns] = V
+        for det in ("C3", "C4"):
+            P = entry[ns][det] / N[:, None]
+            s = np.sqrt(np.maximum(P * (1 - P), 1e-12) / N[:, None])
+            s = np.sqrt(s ** 2 + (sysfloor * np.maximum(P, 1e-4)) ** 2)
+            obs[(ns, det)] = P
+            sig[(ns, det)] = np.maximum(s, 1e-7)
+    ref = nsubs[0]
+    if seed is None:
+        om, ph, _ = prefit_omega_phi0(Vs[ref], entry[ref]["C4"], entry[ref]["N"])
+    else:
+        om, ph = seed
+    nb0 = [max(obs[(ns, "C4")][:, 1].min() * 0.3, 1e-4) for ns in nsubs]
+
+    def unpack(p):
+        r2, eta_int, eta3, eta4, omega, phi0 = p[:6]
+        nbg = {ns: p[6 + i] for i, ns in enumerate(nsubs)}
+        return r2, eta_int, eta3, eta4, omega, phi0, nbg
+
+    def resid(p):
+        r2, eta_int, eta3, eta4, omega, phi0, nbg = unpack(p)
+        out = []
+        for ns in nsubs:
+            diag = output_diag(omega * Vs[ns] + phi0, r1, r2, eta_int, ns, D)
+            M3 = apply_detection(diag, eta3, nbg[ns], nmax, D)
+            M4 = apply_detection(diag, eta4, nbg[ns], nmax, D)
+            out.append(((obs[(ns, "C3")] - M3) / sig[(ns, "C3")]).ravel())
+            out.append(((obs[(ns, "C4")] - M4) / sig[(ns, "C4")]).ravel())
+        return np.concatenate(out)
+
+    lb = [0.005, 0.05, 1e-3, 1e-3, 0.5 * om, ph - np.pi] + [0] * len(nsubs)
+    ub = [3, 1.0, 1.0, 1.0, 1.6 * om, ph + np.pi] + [0.5] * len(nsubs)
+    p0 = np.clip([0.1, 0.8, 0.1, 0.1, om, ph] + nb0, lb, ub)
+    try:
+        r = least_squares(resid, p0, bounds=(lb, ub), method="trf", max_nfev=4000)
+    except Exception:
+        return None
+    r2, eta_int, eta3, eta4, omega, phi0, nbg = unpack(r.x)
+    ndof = max(sum(obs[key].size for key in obs) - len(r.x), 1)
+    return {"r1": r1, "r2": r2, "eta_int": eta_int, "eta3": eta3, "eta4": eta4,
+            "omega": omega, "phi0": phi0, "nbg": nbg, "chi2": 2 * r.cost / ndof}
+
+
 def herald_g2(direction, nmax=8):
     """<n> and g2 of the herald arm from the 'Total Coincidences' per Px level."""
     counts = np.zeros(nmax + 1)
@@ -543,6 +698,217 @@ def compare_readout(direction="UP", nsubs=(0, 1, 2), max_rounds=12):
     return res
 
 
+def _pool_compensated(rounds, rids, nsubs, omega, phi0_list):
+    """Pool all scans onto a common phase axis phi=omega*V+phi0_round (drift removed)."""
+    pooled = {}
+    for ns in nsubs:
+        phi, C3, C4, N = [], [], [], []
+        for k in rids:
+            if ns not in rounds[k]:
+                continue
+            V = rounds[k][ns]["V"]
+            phi.append(omega * V + phi0_list[k])
+            C3.append(rounds[k][ns]["C3"]); C4.append(rounds[k][ns]["C4"])
+            N.append(rounds[k][ns]["N"])
+        pooled[ns] = {"phi": np.concatenate(phi), "C3": np.vstack(C3),
+                      "C4": np.vstack(C4), "N": np.concatenate(N)}
+    return pooled
+
+
+def _bin_pooled(pool_ns, nbins=60):
+    """Fold phi to [0,pi) and bin (sum counts) for fast fitting. Returns phi_c, C3, C4, N."""
+    phi = np.mod(pool_ns["phi"], np.pi)
+    edges = np.linspace(0, np.pi, nbins + 1)
+    idx = np.clip(np.digitize(phi, edges) - 1, 0, nbins - 1)
+    K = pool_ns["C4"].shape[1]
+    C3 = np.zeros((nbins, K)); C4 = np.zeros((nbins, K)); Nc = np.zeros(nbins)
+    for b in range(nbins):
+        m = idx == b
+        if m.any():
+            C3[b] = pool_ns["C3"][m].sum(0); C4[b] = pool_ns["C4"][m].sum(0)
+            Nc[b] = pool_ns["N"][m].sum()
+    keep = Nc > 0
+    ctr = 0.5 * (edges[:-1] + edges[1:])
+    return ctr[keep], C3[keep], C4[keep], Nc[keep]
+
+
+def fit_pooled_general(pooled, nsubs, r1, D=16, sysfloor=0.02):
+    """Fit the general loss model to the pooled, drift-compensated data (phase-binned).
+    Shared r2, eta_int, global phase delta; separate eta3, eta4; per-condition background."""
+    nmax = pooled[nsubs[0]]["C4"].shape[1] - 1
+    obs, sig, phis = {}, {}, {}
+    for ns in nsubs:
+        pc, C3, C4, N = _bin_pooled(pooled[ns])
+        phis[ns] = pc
+        for det, C in (("C3", C3), ("C4", C4)):
+            P = C / N[:, None]
+            s = np.sqrt(np.maximum(P * (1 - P), 1e-12) / N[:, None])
+            s = np.sqrt(s ** 2 + (sysfloor * np.maximum(P, 1e-4)) ** 2)
+            obs[(ns, det)] = P; sig[(ns, det)] = np.maximum(s, 1e-7)
+
+    def unpack(p):
+        r2, eta_int, eta3, eta4, delta = p[:5]
+        nbg = {ns: p[5 + i] for i, ns in enumerate(nsubs)}
+        return r2, eta_int, eta3, eta4, delta, nbg
+
+    def resid(p):
+        r2, eta_int, eta3, eta4, delta, nbg = unpack(p)
+        out = []
+        for ns in nsubs:
+            diag = output_diag(phis[ns] + delta, r1, r2, eta_int, ns, D)
+            M3 = apply_detection(diag, eta3, nbg[ns], nmax, D)
+            M4 = apply_detection(diag, eta4, nbg[ns], nmax, D)
+            out.append(((obs[(ns, "C3")] - M3) / sig[(ns, "C3")]).ravel())
+            out.append(((obs[(ns, "C4")] - M4) / sig[(ns, "C4")]).ravel())
+        return np.concatenate(out)
+
+    lb = [0.005, 0.05, 1e-3, 1e-3, -np.pi] + [0] * len(nsubs)
+    ub = [3, 1.0, 1.0, 1.0, np.pi] + [0.5] * len(nsubs)
+    best = None
+    for d0 in (0, np.pi / 2, np.pi, -np.pi / 2):
+        p0 = np.clip([0.1, 0.8, 0.05, 0.05, d0] + [0.002] * len(nsubs), lb, ub)
+        try:
+            r = least_squares(resid, p0, bounds=(lb, ub), method="trf", max_nfev=3000)
+            if best is None or r.cost < best.cost:
+                best = r
+        except Exception:
+            pass
+    r2, eta_int, eta3, eta4, delta, nbg = unpack(best.x)
+    ndof = max(sum(obs[k].size for k in obs) - len(best.x), 1)
+    return {"r1": r1, "r2": r2, "eta_int": eta_int, "eta3": eta3, "eta4": eta4,
+            "delta": delta, "nbg": nbg, "chi2": 2 * best.cost / ndof}
+
+
+def _profile_eta_int(pool_ns, r1, D, etas=(1.0, 0.6, 0.4, 0.25)):
+    """Profile reduced chi2 vs fixed internal loss for one condition (Det4), to show degeneracy."""
+    phi, _, C4, N = _bin_pooled(pool_ns)
+    P = (C4 / N[:, None])[:, :5]
+    s = np.sqrt(np.maximum(P * (1 - P), 1e-12) / N[:, None]) + 0.02 * np.maximum(P, 1e-4)
+    out = []
+    for ei in etas:
+        def resid(p):
+            r2, eta4, delta, nbg = p
+            d = output_diag(phi + delta, r1, r2, ei, 0, D)
+            M = apply_detection(d, eta4, nbg, 4, D)
+            return ((P - M) / s).ravel()
+        try:
+            r = least_squares(resid, [0.05, 0.05, 0, 0.002],
+                              bounds=([.005, .001, -np.pi, 0], [2, 1, np.pi, .1]), max_nfev=2000)
+            out.append((ei, 2 * r.cost / max(P.size - 4, 1)))
+        except Exception:
+            out.append((ei, np.nan))
+    return out
+
+
+def run_general(direction="UP", nsubs=(0, 1, 2), D=16):
+    """Fit the full loss model (internal loss + separate eta3/eta4) to the pooled,
+    drift-compensated data, and make the drift-compensation plots of P(n) vs phi."""
+    os.makedirs(FIG_DIR, exist_ok=True)
+    nsubs = list(nsubs)
+    print(f"\n=== GENERAL LOSS MODEL [{direction}] (internal loss + separate eta3/eta4) ===")
+    rounds, rids = load_both(direction, nsubs)
+    mean_h, g2_h, _ = herald_g2(direction)
+    r1 = math.asinh(math.sqrt(1.0 / (g2_h - 3.0)))
+
+    # per-round phi0 (fast prefit) for drift compensation; common omega
+    om_list, phi0_list = [], {}
+    for k in rids:
+        om, ph, _ = prefit_omega_phi0(rounds[k][0]["V"], rounds[k][0]["C4"], rounds[k][0]["N"])
+        om_list.append(om); phi0_list[k] = ph
+    omega = float(np.median(om_list))
+
+    pooled = _pool_compensated(rounds, rids, nsubs, omega, phi0_list)
+    # Fit each herald condition separately (best marginal description; shared params
+    # across conditions create tension from the weak-tap / multimode approximations).
+    parc = {}
+    for ns in nsubs:
+        parc[ns] = fit_pooled_general({ns: pooled[ns]}, [ns], r1, D=D)
+    par = parc[nsubs[0]].copy()
+    par["omega"] = omega
+    par["parc"] = parc
+    print(f"  r1={r1:.3f} (fixed, herald)   fringe period={math.pi/omega:.1f} V   "
+          f"(pooled {len(rids)} scans, per-condition fits)")
+    print(f"  {'cond':>6} {'r2':>6} {'eta3':>7} {'eta4':>7} {'eta4/eta3':>9} {'chi2':>7}")
+    for ns in nsubs:
+        p = parc[ns]
+        print(f"  {('N1='+str(ns)):>6} {p['r2']:6.3f} {p['eta3']:7.3f} {p['eta4']:7.3f}"
+              f" {p['eta4']/p['eta3']:9.2f} {p['chi2']:7.1f}")
+
+    # internal-loss identifiability: profile chi2(eta_int) for N1=0 (D4)
+    prof = _profile_eta_int(pooled[0], r1, D)
+    print("  internal loss eta_int is degenerate with gain/efficiency in the marginals:")
+    print("    chi2 vs eta_int (N1=0):  " +
+          "  ".join(f"{e:.2f}->{c:.0f}" for e, c in prof))
+    print("    => not independently determinable here; needs single-pass calibration "
+          "or the full 2-D joint P(n3,n4).")
+
+    colors = plt.cm.viridis(np.linspace(0, 0.85, 5))
+    # ---- FIG 6: pooled fit quality, Det3 & Det4 ----
+    fig, axes = plt.subplots(len(nsubs), 2, figsize=(13, 3.0 * len(nsubs)), sharex=True)
+    phg = np.linspace(0, np.pi, 200)
+    for row, ns in enumerate(nsubs):
+        phi = np.mod(pooled[ns]["phi"], np.pi)
+        p = parc[ns]
+        for col, (det, eta) in enumerate([("C3", "eta3"), ("C4", "eta4")]):
+            ax = axes[row, col]
+            P = pooled[ns][det] / pooled[ns]["N"][:, None]
+            diag = output_diag(phg + p["delta"], r1, p["r2"], p["eta_int"], ns, D)
+            M = apply_detection(diag, p[eta], p["nbg"][ns], P.shape[1] - 1, D)
+            for n in range(1, P.shape[1]):
+                ax.plot(phi, P[:, n], ".", ms=2, color=colors[n], alpha=0.25)
+                ax.plot(phg, M[:, n], "-", color=colors[n], lw=2, label=f"P({n})")
+            ax.set_yscale("log")
+            ax.set_title(f"{'no subtr' if ns==0 else f'N1={ns}'}  Det{det[-1]} (eta={par[eta]:.3f})",
+                         fontsize=9)
+            ax.grid(True, which="both", ls=":", alpha=0.4)
+            if row == 0 and col == 1:
+                ax.legend(fontsize=7, ncol=2)
+    for ax in axes[-1]:
+        ax.set_xlabel("phase phi (rad)")
+    fig.suptitle(f"General loss model, pooled per-condition fits [{direction}]  "
+                 f"(separate eta3, eta4; internal loss degenerate -> set to 1)",
+                 fontweight="bold")
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG_DIR, f"fig6_generalfit_{direction}.png"), dpi=130)
+    plt.close(fig)
+
+    # ---- FIG 7: drift compensation -- all scans, raw vs V and aligned vs phi ----
+    for ns in (0, 1):
+        if ns not in nsubs:
+            continue
+        photons = [1, 2, 3]
+        fig, axes = plt.subplots(len(photons), 2, figsize=(13, 2.6 * len(photons)), sharex="col")
+        for row, n in enumerate(photons):
+            axR, axC = axes[row, 0], axes[row, 1]
+            for k in rids:
+                if ns not in rounds[k] or rounds[k][ns]["C4"].shape[1] <= n:
+                    continue
+                V = rounds[k][ns]["V"]; N = rounds[k][ns]["N"]
+                P = rounds[k][ns]["C4"][:, n] / N
+                axR.plot(V, P, "-", color="0.6", lw=0.6, alpha=0.5)
+                phi = np.mod(omega * V + phi0_list[k], np.pi)
+                o = np.argsort(phi)
+                axC.plot(phi[o], P[o], "-", color="0.6", lw=0.6, alpha=0.5)
+            p = parc[ns]
+            diag = output_diag(phg + p["delta"], r1, p["r2"], p["eta_int"], ns, D)
+            Mg = apply_detection(diag, p["eta4"], p["nbg"][ns], n, D)[:, n]
+            axC.plot(phg, Mg, "-", color="crimson", lw=2.3, label="pooled model")
+            axR.set_ylabel(f"P({n})"); axR.grid(ls=":", alpha=0.4); axC.grid(ls=":", alpha=0.4)
+            if row == 0:
+                axR.set_title("raw: all scans vs piezo voltage (phase drifts)")
+                axC.set_title("drift-compensated & folded vs phase phi [rad]")
+                axC.legend(fontsize=8)
+        axes[-1, 0].set_xlabel("piezo voltage (V)")
+        axes[-1, 1].set_xlabel("phase phi (rad)")
+        fig.suptitle(f"Drift compensation, {'no subtraction' if ns==0 else f'N1={ns}'} "
+                     f"[{direction}, all {len(rids)} scans, Det4]", fontweight="bold")
+        fig.tight_layout()
+        fig.savefig(os.path.join(FIG_DIR, f"fig7_driftcomp_N1{ns}_{direction}.png"), dpi=130)
+        plt.close(fig)
+    print(f"  figures fig6/fig7 written to {FIG_DIR}/")
+    return par
+
+
 if __name__ == "__main__":
     summary = {}
     for direction in ("UP", "DOWN"):
@@ -560,6 +926,11 @@ if __name__ == "__main__":
         compare_readout("UP")
     except Exception as e:
         print(f"  readout comparison failed: {e}")
+    for direction in ("UP", "DOWN"):
+        try:
+            run_general(direction)
+        except Exception as e:
+            print(f"  general model {direction} failed: {e}")
     with open(os.path.join(FIG_DIR, "summary.json"), "w") as f:
         json.dump(summary, f, indent=2, default=float)
     print("\nDone.")

@@ -167,6 +167,44 @@ exactly the question the CFI answers below.
 
 ---
 
+## 3b. Loss anywhere in the interferometer (internal loss + separate detectors)
+
+Loss at the **end** (detector) is a simple binomial thinning of the final distribution,
+Eq. (★). Loss **inside** the interferometer — after the first squeezer, at the herald tap,
+or before the second squeezer — is *not*, because the second squeezer **re-amplifies**
+whatever leaks in. A photon lost before `S₂` is replaced by vacuum that `S₂` turns into
+*thermal* photons, so internal loss raises the higher photon-number sectors
+(`P(2)`, `P(3)`) rather than just rescaling. It must therefore be applied as a proper
+loss channel on the **density matrix**, between the operators:
+
+```
+ ρ = |0⟩⟨0|
+ ρ → S₁ ρ S₁†
+ ρ → Λ_{η_int}[ρ]                 # internal loss (after S1 / at the herald tap)
+ ρ → a^{N₁} ρ a†^{N₁} / tr(…)     # heralded photon subtraction
+ ρ → S₂ R(φ) ρ R(φ)† S₂†          # phase + second squeezer
+ P_d(n,φ) = binom-loss_{η_d}[ diag ρ ] ⊛ Poisson(n_bg)   for d = 3, 4
+```
+
+where `Λ_η[ρ]_{j,k} = Σ_l √(C(j+l,l) C(k+l,l)) (1−η)^l η^{(j+k)/2} ρ_{j+l,k+l}` is the
+amplitude-damping (loss) channel. The two detectors 3 and 4 (the 50:50 split of the
+output) get **independent efficiencies η₃, η₄**; both marginals come from the *same*
+output density matrix. This is implemented in `ni_analysis.py`
+(`loss_channel`, `output_diag`, `apply_detection`, `fit_pooled_general`) and reduces
+exactly to Eq. (★) when `η_int = 1` (verified to 1e-15).
+
+**Loss in front of the herald arm** is different again: it lowers the herald *efficiency*.
+Its leading effect is on herald *rates* and a slight blurring of "exactly N₁ subtracted";
+for the conditional output *shape* in the weak-tap limit it is second order, so it is not
+included as a free parameter here (it can be added as a herald POVM if needed).
+
+**What the data can and cannot constrain (see RESULTS.md):** η₃ and η₄ are separately
+identifiable (their ratio is ~1.2, stable across herald conditions). The **internal loss
+η_int is degenerate** with the gain ratio `r₁/r₂` in a single-detector marginal — both
+lower the fringe visibility — so a marginal scan cannot fix it (χ² is nearly flat in
+η_int). Breaking the degeneracy needs either single-pass calibration of the gains/
+efficiencies (as in the reference, Appendix F) or the full 2-D joint `P(n₃,n₄)`.
+
 ## 4. Fisher information, sensitivity, and the classical benchmark
 
 For a measured photon-number distribution `p_n(φ)` the **classical Fisher information** is

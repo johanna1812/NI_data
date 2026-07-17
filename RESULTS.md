@@ -87,6 +87,37 @@ Other things worth doing:
 * Report `g⁽²⁾` of the herald arm per gain setting — it is the cleanest, loss-free
   monitor of r₁.
 
+## 5b. Loss everywhere, separate detectors, and drift compensation (general model)
+
+`run_general()` uses full density-matrix propagation so loss can sit **anywhere**, not
+just at the end (see THEORY §3b). Fitting the pooled, drift-compensated data per herald
+condition (`fig6`, `fig7`):
+
+| herald | r₂ | η₃ | η₄ | η₄/η₃ | χ²ᵥ |
+|---|---|---|---|---|---|
+| N₁=0 | 0.040 | 0.058 | 0.067 | 1.17 | 4.8 |
+| N₁=1 | 0.072 | 0.032 | 0.039 | 1.22 | 66 |
+| N₁=2 | 0.051 | 0.044 | 0.051 | 1.17 | 53 |
+
+* **Detectors 3 and 4 have different efficiencies:** η₄/η₃ ≈ **1.2**, stable across all
+  herald conditions — so yes, two separate losses are warranted (D4 ~20% better than D3).
+* **Internal loss η_int is degenerate** with the gain ratio r₁/r₂ in a single-detector
+  marginal: profiling gives χ²(η_int) = 5→14 as η_int goes 1.0→0.25 — a shallow,
+  monotonic rise with no real minimum, so the data cannot fix it. It is included in the
+  model and correctly re-amplified by S₂, but to *measure* it you need single-pass gain/
+  efficiency calibration (reference Appendix F) or the full 2-D joint P(n₃,n₄).
+* The single-mode model slightly underpredicts P(2) when one (r₂, η) is forced across all
+  herald conditions; per-condition fits remove this (χ²ᵥ=4.8 for N₁=0). The residual
+  N₁=1,2 tension is consistent with a **few Schmidt (spectral) modes** and the weak-tap
+  approximation for subtraction — a multimode/thermal background term is the next
+  refinement.
+
+**Drift compensation (`fig7`).** Each scan is placed on a common phase axis
+φ = ω·V + φ₀(round), with φ₀ from the per-round mean-photon fringe. Raw vs voltage the
+30 scans are smeared by the ~160° drift; after compensation they **collapse onto a single
+clean fringe** for P(1), P(2) and P(3), plotted vs φ in radians, and the model
+overlays it. This is the correct way to combine the scans without washing out the fringe.
+
 ## 6. Literature — has this been measured?
 
 Photon-subtracted squeezed states for phase estimation are **well studied theoretically**
