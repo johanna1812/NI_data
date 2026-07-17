@@ -1,0 +1,292 @@
+MULTI-MATRIX COINCIDENCE REPORT
+File: round_17.ttbin
+Integration: 600s | Window: 4000ps
+
+========================================
+MATRIX 1: Det 1 (gated) (Rows) vs Det 2 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   :  216427   16967     842       0       0       0       0       0
+Px2   :    8604     601       0       0       0       0       0       0
+Px3   :     361      60       0       0       0       0       0       0
+Px4   :       0       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 2 (gated) given Det 1 (gated)):
+   Given Det 1 (gated) Px1: [P(0)= 92.4%, P(1)=  7.2%, P(2)=  0.4%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=234237)
+   Given Det 1 (gated) Px2: [P(0)= 93.5%, P(1)=  6.5%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=9205)
+   Given Det 1 (gated) Px3: [P(0)= 85.7%, P(1)= 14.3%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=421)
+   Given Det 1 (gated) Px4: No counts.
+   Given Det 1 (gated) Px5: No counts.
+   Given Det 1 (gated) Px6: No counts.
+   Given Det 1 (gated) Px7: No counts.
+   Given Det 1 (gated) Px8: No counts.
+
+========================================
+MATRIX 2: Det 1 (gated) (Rows) vs Det 3 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   :  512158   16365     541       0       0       0       0       0
+Px2   :   16666     722       0       0       0       0       0       0
+Px3   :     661       0       0       0       0       0       0       0
+Px4   :       0       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 3 (gated) given Det 1 (gated)):
+   Given Det 1 (gated) Px1: [P(0)= 96.8%, P(1)=  3.1%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=529065)
+   Given Det 1 (gated) Px2: [P(0)= 95.8%, P(1)=  4.2%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=17388)
+   Given Det 1 (gated) Px3: [P(0)=100.0%, P(1)=  0.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=661)
+   Given Det 1 (gated) Px4: No counts.
+   Given Det 1 (gated) Px5: No counts.
+   Given Det 1 (gated) Px6: No counts.
+   Given Det 1 (gated) Px7: No counts.
+   Given Det 1 (gated) Px8: No counts.
+
+========================================
+MATRIX 3: Det 1 (gated) (Rows) vs Det 4 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   :  577922   18171     842       0       0       0       0       0
+Px2   :   20397    1022      60       0       0       0       0       0
+Px3   :     661       0       0       0       0       0       0       0
+Px4   :       0       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (gated) given Det 1 (gated)):
+   Given Det 1 (gated) Px1: [P(0)= 96.8%, P(1)=  3.0%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=596936)
+   Given Det 1 (gated) Px2: [P(0)= 95.0%, P(1)=  4.8%, P(2)=  0.3%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=21480)
+   Given Det 1 (gated) Px3: [P(0)=100.0%, P(1)=  0.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=661)
+   Given Det 1 (gated) Px4: No counts.
+   Given Det 1 (gated) Px5: No counts.
+   Given Det 1 (gated) Px6: No counts.
+   Given Det 1 (gated) Px7: No counts.
+   Given Det 1 (gated) Px8: No counts.
+
+========================================
+MATRIX 4: Det 2 (gated) (Rows) vs Det 3 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   :  272324    6618       0       0       0       0       0       0
+Px2   :   22443     481       0       0       0       0       0       0
+Px3   :     842      60       0       0       0       0       0       0
+Px4   :       0       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 3 (gated) given Det 2 (gated)):
+   Given Det 2 (gated) Px1: [P(0)= 97.6%, P(1)=  2.4%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=278943)
+   Given Det 2 (gated) Px2: [P(0)= 97.9%, P(1)=  2.1%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=22924)
+   Given Det 2 (gated) Px3: [P(0)= 93.3%, P(1)=  6.7%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=902)
+   Given Det 2 (gated) Px4: No counts.
+   Given Det 2 (gated) Px5: No counts.
+   Given Det 2 (gated) Px6: No counts.
+   Given Det 2 (gated) Px7: No counts.
+   Given Det 2 (gated) Px8: No counts.
+
+========================================
+MATRIX 5: Det 2 (gated) (Rows) vs Det 4 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   :  329304    8543     240       0       0       0       0       0
+Px2   :   27437     902      60       0       0       0       0       0
+Px3   :    1143      60       0       0       0       0       0       0
+Px4   :      60       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (gated) given Det 2 (gated)):
+   Given Det 2 (gated) Px1: [P(0)= 97.4%, P(1)=  2.5%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=338089)
+   Given Det 2 (gated) Px2: [P(0)= 96.6%, P(1)=  3.2%, P(2)=  0.2%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=28399)
+   Given Det 2 (gated) Px3: [P(0)= 95.0%, P(1)=  5.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=1203)
+   Given Det 2 (gated) Px4: [P(0)=100.0%, P(1)=  0.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=60)
+   Given Det 2 (gated) Px5: No counts.
+   Given Det 2 (gated) Px6: No counts.
+   Given Det 2 (gated) Px7: No counts.
+   Given Det 2 (gated) Px8: No counts.
+
+========================================
+MATRIX 6: Det 3 (gated) (Rows) vs Det 4 (gated) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8
+Px1   : 2816749   70277    2466       0       0       0       0       0
+Px2   :   65223   10770     300       0       0       0       0       0
+Px3   :    1865     300       0       0       0       0       0       0
+Px4   :       0       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (gated) given Det 3 (gated)):
+   Given Det 3 (gated) Px1: [P(0)= 97.5%, P(1)=  2.4%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=2889493)
+   Given Det 3 (gated) Px2: [P(0)= 85.5%, P(1)= 14.1%, P(2)=  0.4%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=76294)
+   Given Det 3 (gated) Px3: [P(0)= 86.1%, P(1)= 13.9%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%] (N=2166)
+   Given Det 3 (gated) Px4: No counts.
+   Given Det 3 (gated) Px5: No counts.
+   Given Det 3 (gated) Px6: No counts.
+   Given Det 3 (gated) Px7: No counts.
+   Given Det 3 (gated) Px8: No counts.
+
+========================================
+MATRIX 7: Det 1 (raw) (Rows) vs Det 2 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :57934651913824841 1351214   53008    2767       0       0       0       0
+Px2   : 4877295  191397   15523     782       0       0       0       0       0
+Px3   :  307944    7641     541       0       0       0       0       0       0
+Px4   :    2406     180       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 2 (raw) given Det 1 (raw)):
+   Given Det 1 (raw) Px1: [P(0)= 97.4%, P(1)=  2.3%, P(2)=  0.2%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=594578352)
+   Given Det 1 (raw) Px2: [P(0)= 95.9%, P(1)=  3.8%, P(2)=  0.3%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=5084999)
+   Given Det 1 (raw) Px3: [P(0)= 97.4%, P(1)=  2.4%, P(2)=  0.2%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=316127)
+   Given Det 1 (raw) Px4: [P(0)= 93.0%, P(1)=  7.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=2587)
+   Given Det 1 (raw) Px5: No counts.
+   Given Det 1 (raw) Px6: No counts.
+   Given Det 1 (raw) Px7: No counts.
+   Given Det 1 (raw) Px8: No counts.
+   Given Det 1 (raw) Px9: No counts.
+
+========================================
+MATRIX 8: Det 1 (raw) (Rows) vs Det 3 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :586029726 8317576  224189    1444       0       0       0       0       0
+Px2   : 4589567  479847   14861     120       0       0       0       0       0
+Px3   :  300243   15162     722       0       0       0       0       0       0
+Px4   :    2346     240       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 3 (raw) given Det 1 (raw)):
+   Given Det 1 (raw) Px1: [P(0)= 98.6%, P(1)=  1.4%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=594572936)
+   Given Det 1 (raw) Px2: [P(0)= 90.3%, P(1)=  9.4%, P(2)=  0.3%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=5084397)
+   Given Det 1 (raw) Px3: [P(0)= 95.0%, P(1)=  4.8%, P(2)=  0.2%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=316127)
+   Given Det 1 (raw) Px4: [P(0)= 90.7%, P(1)=  9.3%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=2587)
+   Given Det 1 (raw) Px5: No counts.
+   Given Det 1 (raw) Px6: No counts.
+   Given Det 1 (raw) Px7: No counts.
+   Given Det 1 (raw) Px8: No counts.
+   Given Det 1 (raw) Px9: No counts.
+
+========================================
+MATRIX 9: Det 1 (raw) (Rows) vs Det 4 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :585054087 9257475  263359       0       0       0       0       0       0
+Px2   : 4527714  540196   16365       0       0       0       0       0       0
+Px3   :  296512   18592     962       0       0       0       0       0       0
+Px4   :    2286     300       0       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (raw) given Det 1 (raw)):
+   Given Det 1 (raw) Px1: [P(0)= 98.4%, P(1)=  1.6%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=594574922)
+   Given Det 1 (raw) Px2: [P(0)= 89.1%, P(1)= 10.6%, P(2)=  0.3%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=5084277)
+   Given Det 1 (raw) Px3: [P(0)= 93.8%, P(1)=  5.9%, P(2)=  0.3%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=316067)
+   Given Det 1 (raw) Px4: [P(0)= 88.4%, P(1)= 11.6%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=2587)
+   Given Det 1 (raw) Px5: No counts.
+   Given Det 1 (raw) Px6: No counts.
+   Given Det 1 (raw) Px7: No counts.
+   Given Det 1 (raw) Px8: No counts.
+   Given Det 1 (raw) Px9: No counts.
+
+========================================
+MATRIX 10: Det 2 (raw) (Rows) vs Det 3 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :575751484 8547662  233275    1564       0       0       0       0       0
+Px2   :13774359  243744    6016       0       0       0       0       0       0
+Px3   : 1345738   21179     421       0       0       0       0       0       0
+Px4   :   52948     782      60       0       0       0       0       0       0
+Px5   :    2767       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 3 (raw) given Det 2 (raw)):
+   Given Det 2 (raw) Px1: [P(0)= 98.5%, P(1)=  1.5%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=584533986)
+   Given Det 2 (raw) Px2: [P(0)= 98.2%, P(1)=  1.7%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=14024121)
+   Given Det 2 (raw) Px3: [P(0)= 98.4%, P(1)=  1.5%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=1367339)
+   Given Det 2 (raw) Px4: [P(0)= 98.4%, P(1)=  1.5%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=53791)
+   Given Det 2 (raw) Px5: [P(0)=100.0%, P(1)=  0.0%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=2767)
+   Given Det 2 (raw) Px6: No counts.
+   Given Det 2 (raw) Px7: No counts.
+   Given Det 2 (raw) Px8: No counts.
+   Given Det 2 (raw) Px9: No counts.
+
+========================================
+MATRIX 11: Det 2 (raw) (Rows) vs Det 4 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :574766759 9496527  272384       0       0       0       0       0       0
+Px2   :13722373  294226    7460       0       0       0       0       0       0
+Px3   : 1341045   25451     782       0       0       0       0       0       0
+Px4   :   52708    1022      60       0       0       0       0       0       0
+Px5   :    2707      60       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (raw) given Det 2 (raw)):
+   Given Det 2 (raw) Px1: [P(0)= 98.3%, P(1)=  1.6%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=584535671)
+   Given Det 2 (raw) Px2: [P(0)= 97.8%, P(1)=  2.1%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=14024060)
+   Given Det 2 (raw) Px3: [P(0)= 98.1%, P(1)=  1.9%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=1367279)
+   Given Det 2 (raw) Px4: [P(0)= 98.0%, P(1)=  1.9%, P(2)=  0.1%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=53791)
+   Given Det 2 (raw) Px5: [P(0)= 97.8%, P(1)=  2.2%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=2767)
+   Given Det 2 (raw) Px6: No counts.
+   Given Det 2 (raw) Px7: No counts.
+   Given Det 2 (raw) Px8: No counts.
+   Given Det 2 (raw) Px9: No counts.
+
+========================================
+MATRIX 12: Det 3 (raw) (Rows) vs Det 4 (raw) (Cols)
+========================================
+           Px1     Px2     Px3     Px4     Px5     Px6     Px7     Px8     Px9
+Px1   :583641620 7070815  212877       0       0       0       0       0       0
+Px2   : 6062323 2691538   57341       0       0       0       0       0       0
+Px3   :  177378   51985   10168       0       0       0       0       0       0
+Px4   :     782     722      60       0       0       0       0       0       0
+Px5   :       0       0       0       0       0       0       0       0       0
+Px6   :       0       0       0       0       0       0       0       0       0
+Px7   :       0       0       0       0       0       0       0       0       0
+Px8   :       0       0       0       0       0       0       0       0       0
+Px9   :       0       0       0       0       0       0       0       0       0
+
+Conditional Statistics (Probability of Det 4 (raw) given Det 3 (raw)):
+   Given Det 3 (raw) Px1: [P(0)= 98.8%, P(1)=  1.2%, P(2)=  0.0%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=590925313)
+   Given Det 3 (raw) Px2: [P(0)= 68.8%, P(1)= 30.5%, P(2)=  0.7%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=8811202)
+   Given Det 3 (raw) Px3: [P(0)= 74.1%, P(1)= 21.7%, P(2)=  4.2%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=239532)
+   Given Det 3 (raw) Px4: [P(0)= 50.0%, P(1)= 46.2%, P(2)=  3.8%, P(3)=  0.0%, P(4)=  0.0%, P(5)=  0.0%, P(6)=  0.0%, P(7)=  0.0%, P(8)=  0.0%] (N=1564)
+   Given Det 3 (raw) Px5: No counts.
+   Given Det 3 (raw) Px6: No counts.
+   Given Det 3 (raw) Px7: No counts.
+   Given Det 3 (raw) Px8: No counts.
+   Given Det 3 (raw) Px9: No counts.
+
