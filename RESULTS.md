@@ -118,6 +118,41 @@ condition (`fig6`, `fig7`):
 clean fringe** for P(1), P(2) and P(3), plotted vs φ in radians, and the model
 overlays it. This is the correct way to combine the scans without washing out the fringe.
 
+## 5c. Full 2-D joint P(n₃,n₄): the readout is genuinely two-mode (key finding)
+
+`ni_joint.py` / `analysis_joint_correlations.py` build the exact joint model and test the
+two requested items. Result — the more interesting one — is that **the D3/D4 pair is not a
+passive split of one mode; the two detectors are photon-number-correlated (signal/idler)**:
+
+* A passive 50:50 split + number detection is a number-diagonal POVM, so it predicts
+  P(n₃,n₄) = trinomial spread of the single output diagonal, with the split ratio
+  phase-independent. That model **fails**: it under-predicts the coincidence P(1,1) by
+  ~4.5× and P(2,2) by ~7×, with χ² ~ 200–290.
+* **Cauchy–Schwarz test** R = g⁽¹,¹⁾²/(g⁽²⁾₃ g⁽²⁾₄) (classical bound R ≤ 1), UP≈DOWN:
+
+  | herald | g²(D3) | g²(D4) | g⁽¹,¹⁾ (cross) | R | |
+  |---|---|---|---|---|---|
+  | no subtraction | 4.0 | 4.5 | 18.0 | **18** | strongly nonclassical |
+  | N₁=1 | **0.50** | **0.49** | 0.80 | **2.6** | nonclassical + antibunched marginals |
+  | N₁=2 | 2.2 | 2.3 | 3.5 | **2.5** | nonclassical |
+
+  All conditions violate the classical bound → genuine two-mode (pair) correlations.
+* Bonus nonclassicality: one-photon subtraction drives the **single-detector** marginal
+  from super-Poissonian (g²=4.0) to **sub-Poissonian, antibunched (g²=0.49)**.
+
+**Consequences.**
+1. The correct model is the **two-mode** framework (arXiv:2606.30761 Eq. 3 for the
+   no-subtraction case; extended for subtraction), *not* the single-mode model of
+   `ni_analysis.py`. The single-mode marginal fits (§1–5) remain valid as *marginal*
+   descriptions, but the joint needs two modes.
+2. Because the correlations are real, the **full joint P(n₃,n₄) carries phase information
+   beyond the total n₃+n₄** (the "joint = total" equality found with the single-mode
+   model is an artefact of that wrong model). Quantifying the excess CFI needs the
+   two-mode model. Using both detectors already ~doubles the CFI vs one detector.
+3. The **multimode/thermal background is not the cause of the N₁=1,2 residual**: thermal
+   background does not lower χ² (267→279 for N₁=1); the residual is the missing two-mode
+   correlation.
+
 ## 6. Literature — has this been measured?
 
 Photon-subtracted squeezed states for phase estimation are **well studied theoretically**
