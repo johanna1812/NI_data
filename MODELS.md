@@ -97,6 +97,36 @@ the earlier single-mode marginal model of `ni_analysis.py` is the effective desc
   (see below). The single-mode marginal analysis of the subtracted data (figs 1–8)
   remains valid as a *marginal* description.
 
+## The physical circuit (`seeded_pn`): D single-mode squeezer → subtract → H-V two-mode squeezer
+
+As specified by the experiment, `ni_twomode.seeded_pn` implements:
+
+```
+|0,0> -> S_D(r1) [single-mode squeeze the D=(H+V)/√2 mode]
+      -> subtract N1 from the D mode (herald tap on the seed)
+      -> R(phi) [relative H-V phase]
+      -> S_HV(r2) [two-mode squeeze H,V, seeded by the above]
+      -> HWP+PBS(theta_bs) -> detect (eta3,eta4)+bkg
+```
+
+**N₁=0 (no subtraction) — validated.** `fit_seeded` gives **χ²ᵥ≈37**, and the model
+reproduces the data correlations exactly: g²=(4.1,4.6) vs data (4.0,4.5), g⁽¹,¹⁾=17.9 vs
+18, R=17 vs 18; with **η₃=0.50, η₄=0.58 ≈ the reference TES efficiencies (0.54,0.58)**.
+Fitted gains: D single-mode `r1≈0.08`, H-V two-mode `r2≈0.115`. This is the correct
+physical model — the D-mode squeeze supplies the elevated single-mode g² (>2) and the H-V
+squeezer supplies the pair correlation (R≫1), which no single-part model could do together.
+
+**N₁=1,2 (subtracted) — open.** Fit *freely*, the seeded circuit reproduces the
+non-classical features (antibunched marginals g²=0.4 vs data 0.5, and R≈2.6 for N₁=1).
+But with the **shared** source + detector parameters from N₁=0 it does **not** fit
+(χ²~10³–10⁴), and the free fits want ~3× lower detector efficiency (η≈0.15 vs 0.5). A
+finite-herald-efficiency mixture (`seeded_pn_blur`, parameter `lam`) fixes N₁=1's g² but
+not its R. This points to the heralded subtraction being **multimode** — the herald photon
+lives in a partly distinct spectral/spatial mode, so conditioning yields a mixed state the
+single-D-mode operator `d^{N1}` cannot represent. Resolving it needs the herald's mode
+structure (Schmidt/spectral) added explicitly. Functions ready for this study:
+`seeded_pn`, `seeded_pn_blur`, `fit_seeded`, `fit_seeded_blur`.
+
 ## Recommended next step
 
 1. **Add the herald mode** (3-mode: herald ⊗ a ⊗ b) so the subtracted conditions

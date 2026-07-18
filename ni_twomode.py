@@ -247,3 +247,160 @@ def cfi_joint(params, N1=0, D=9, ngrid=200):
     F_m = np.nansum(dm ** 2 / (m0 + 1e-15), axis=1)
     return dict(F_joint=F_joint.max(), F_total=F_tot.max(), F_marg=F_m.max(),
                 gain_joint_over_total=F_joint.max() / F_tot.max())
+
+
+# =====================================================================
+#  PHYSICAL CIRCUIT (as specified by the experiment):
+#    1. rotated single-mode squeezer in D=(H+V)/sqrt2 :   S_D(r1)
+#    2. subtract N1 photons from the D mode (herald tap on the seed)
+#    3. relative H-V phase phi (piezo)
+#    4. H-V two-mode squeezer seeded by it :               S_HV(r2)
+#    5. HWP+PBS read-out (theta_bs) + per-detector loss/background
+# =====================================================================
+def seeded_pn(phi_arr, params, N1=0, nmax=4, D=9):
+    """Detected P(n3,n4) for: S_D(r1) -> subtract^N1 (D mode) -> R(phi) -> S_HV(r2)
+       -> BS(theta_bs) -> loss(eta3,eta4)+bkg.  params: r1,r2,eta3,eta4,nbg3,nbg4,phi0,theta_bs."""
+    h, v = _ops(D)
+    hd, vd = h.T, v.T
+    d = (h + v) / math.sqrt(2.0); dd = d.T                    # D-polarised mode
+    r1, r2 = params["r1"], params["r2"]
+    S1 = expm(0.5 * r1 * (d @ d - dd @ dd))                   # single-mode squeeze D
+    S2 = expm(r2 * (h @ v - hd @ vd))                         # two-mode squeeze H,V
+    B = expm(params.get("theta_bs", 0.0) * (hd @ v - h @ vd))
+
+    psi = S1[:, 0].copy()                                     # S_D(r1)|0,0>
+    if N1 > 0:
+        dop = np.linalg.matrix_power(d, N1)
+        psi = dop @ psi
+        nrm = np.linalg.norm(psi)
+        if nrm <= 0:
+            return np.zeros((len(phi_arr), nmax + 1, nmax + 1))
+        psi = psi / nrm
+    nh = np.arange(D).repeat(D)                               # n_H index
+    L3 = _loss_matrix(params.get("eta3", 1.0), D)
+    L4 = _loss_matrix(params.get("eta4", 1.0), D)
+    b3 = _bg_vec(params.get("nbg3", 0.0), D, params.get("bg", "poisson"))
+    b4 = _bg_vec(params.get("nbg4", 0.0), D, params.get("bg", "poisson"))
+    phi0 = params.get("phi0", 0.0)
+    out = np.empty((len(phi_arr), nmax + 1, nmax + 1))
+    for i, ph in enumerate(phi_arr):
+        st = B @ (S2 @ (np.exp(-1j * (ph + phi0) * nh) * psi))
+        Pid = (np.abs(st) ** 2).reshape(D, D)
+        Pdet = L3 @ Pid @ L4.T
+        Pdet = np.array([np.convolve(row, b4)[:D] for row in Pdet])
+        Pdet = np.array([np.convolve(col, b3)[:D] for col in Pdet.T]).T
+        out[i] = Pdet[:nmax + 1, :nmax + 1]
+    return out
+
+
+def fit_seeded(pooled_ns, N1, D=8, sysfloor=0.02, fixed=None, seeds=None):
+    """Fit the seeded circuit (seeded_pn). If `fixed` (dict of r1,r2,eta3,eta4) is given,
+    only phi0 and background are fitted (for the subtracted conditions with shared source
+    + detectors). Returns params dict incl chi2."""
+    phi = pooled_ns["phi"]; N = pooled_ns["N"]
+    Mobs = np.array([m / n for m, n in zip(pooled_ns["M"], N)])
+    nmax = Mobs.shape[1] - 1
+    sig = np.maximum(np.sqrt(np.maximum(Mobs * (1 - Mobs), 1e-12) / N[:, None, None]
+                            + (sysfloor * np.maximum(Mobs, 1e-5)) ** 2), 1e-8)
+    if fixed is None:
+        def resid(p):
+            par = dict(r1=p[0], r2=p[1], eta3=p[2], eta4=p[3], nbg3=p[4], nbg4=p[4],
+                       phi0=p[5], theta_bs=0.0)
+            return ((Mobs - seeded_pn(phi, par, N1=N1, nmax=nmax, D=D)) / sig).ravel()
+        lb = [0.02, 0.02, 1e-3, 1e-3, 0, -np.pi]; ub = [1.5, 1.5, 1.0, 1.0, 0.1, np.pi]
+        if seeds is None:
+            seeds = [[0.15, 0.3, 0.5, 0.5, 0.003, d] for d in (1.5, 0.0, math.pi)]
+        keys = ["r1", "r2", "eta3", "eta4", "nbg", "phi0"]
+    else:
+        def resid(p):
+            par = dict(fixed); par.update(nbg3=p[0], nbg4=p[0], phi0=p[1], theta_bs=0.0)
+            return ((Mobs - seeded_pn(phi, par, N1=N1, nmax=nmax, D=D)) / sig).ravel()
+        lb = [0, -np.pi]; ub = [0.1, np.pi]
+        seeds = [[0.003, d] for d in (fixed.get("phi0", 1.5), 0.0, math.pi)]
+        keys = ["nbg", "phi0"]
+    best = None
+    for s in seeds:
+        try:
+            r = least_squares(resid, np.clip(s, lb, ub), bounds=(lb, ub),
+                              method="trf", max_nfev=1200)
+            if best is None or r.cost < best.cost:
+                best = r
+        except Exception:
+            pass
+    x = best.x
+    out = dict(zip(keys, x)); out["theta_bs"] = 0.0
+    if fixed is not None:
+        out = dict(fixed); out.update(nbg3=x[0], nbg4=x[0], phi0=x[1], theta_bs=0.0)
+    else:
+        out = dict(r1=x[0], r2=x[1], eta3=x[2], eta4=x[3], nbg3=x[4], nbg4=x[4],
+                   phi0=x[5], theta_bs=0.0)
+    out["chi2"] = 2 * best.cost / max(Mobs.size - len(x), 1)
+    return out
+
+
+def seeded_pn_blur(phi_arr, params, N1=0, nmax=4, D=9, kextra=3):
+    """Seeded circuit with finite HERALD EFFICIENCY: detecting N1 herald clicks is a
+    mixture over the true number k>=N1 of photons removed from the D mode, with binomial
+    weights w_k = C(k,N1) * lam^(k-N1) (lam in [0,1): 0 = ideal PNR herald, larger = more
+    blurring from undetected tapped photons). params adds 'lam'."""
+    lam = params.get("lam", 0.0)
+    if N1 == 0 or lam <= 1e-9:
+        return seeded_pn(phi_arr, params, N1=N1, nmax=nmax, D=D)
+    h, v = _ops(D); hd, vd = h.T, v.T
+    d = (h + v) / math.sqrt(2.0); dd = d.T
+    r1, r2 = params["r1"], params["r2"]
+    S1 = expm(0.5 * r1 * (d @ d - dd @ dd))
+    S2 = expm(r2 * (h @ v - hd @ vd))
+    B = expm(params.get("theta_bs", 0.0) * (hd @ v - h @ vd))
+    nh = np.arange(D).repeat(D)
+    L3 = _loss_matrix(params.get("eta3", 1.0), D); L4 = _loss_matrix(params.get("eta4", 1.0), D)
+    b3 = _bg_vec(params.get("nbg3", 0.0), D, params.get("bg", "poisson"))
+    b4 = _bg_vec(params.get("nbg4", 0.0), D, params.get("bg", "poisson"))
+    phi0 = params.get("phi0", 0.0)
+    seed = S1[:, 0].copy()
+    # pre-build subtracted seeds d^k|S1> (unnormalised) and their weights
+    ks = list(range(N1, N1 + kextra + 1))
+    seeds_k, wts = [], []
+    for k in ks:
+        psik = np.linalg.matrix_power(d, k) @ seed
+        seeds_k.append(psik)
+        wts.append(comb(k, N1) * lam ** (k - N1))
+    out = np.empty((len(phi_arr), nmax + 1, nmax + 1))
+    for i, ph in enumerate(phi_arr):
+        Pid = np.zeros((D, D))
+        ph_fac = np.exp(-1j * (ph + phi0) * nh)
+        for psik, w in zip(seeds_k, wts):
+            st = B @ (S2 @ (ph_fac * psik))
+            Pid += w * (np.abs(st) ** 2).reshape(D, D)      # unnormalised mixture
+        Pdet = L3 @ Pid @ L4.T
+        Pdet = np.array([np.convolve(row, b4)[:D] for row in Pdet])
+        Pdet = np.array([np.convolve(col, b3)[:D] for col in Pdet.T]).T
+        Pdet /= Pdet.sum()
+        out[i] = Pdet[:nmax + 1, :nmax + 1]
+    return out
+
+
+def fit_seeded_blur(pooled_ns, N1, fixed, D=8, sysfloor=0.02):
+    """Subtracted-condition fit with SHARED source+detectors (fixed) + herald blur lam,
+    fitting only lam, phi0, background."""
+    phi = pooled_ns["phi"]; N = pooled_ns["N"]
+    Mobs = np.array([m / n for m, n in zip(pooled_ns["M"], N)])
+    nmax = Mobs.shape[1] - 1
+    sig = np.maximum(np.sqrt(np.maximum(Mobs * (1 - Mobs), 1e-12) / N[:, None, None]
+                            + (sysfloor * np.maximum(Mobs, 1e-5)) ** 2), 1e-8)
+    def resid(p):
+        par = dict(fixed); par.update(lam=p[0], phi0=p[1], nbg3=p[2], nbg4=p[2], theta_bs=0.0)
+        return ((Mobs - seeded_pn_blur(phi, par, N1=N1, nmax=nmax, D=D)) / sig).ravel()
+    best = None
+    for d0 in (fixed.get("phi0", 1.5), 0.0, math.pi):
+        try:
+            r = least_squares(resid, [0.5, d0, 0.003], bounds=([0, -np.pi, 0], [0.98, np.pi, 0.1]),
+                              method="trf", max_nfev=1000)
+            if best is None or r.cost < best.cost:
+                best = r
+        except Exception:
+            pass
+    x = best.x
+    out = dict(fixed); out.update(lam=x[0], phi0=x[1], nbg3=x[2], nbg4=x[2], theta_bs=0.0,
+                                  chi2=2 * best.cost / max(Mobs.size - 3, 1))
+    return out
